@@ -9,14 +9,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.min.js"></script>
 <script>
-console.log(window.innerWidth, window.innerHeight)
+//<script type="application/json">
+//console.log(window.innerWidth, window.innerHeight)
+bstyle = window.getComputedStyle(document.body);
+function margin(marginDirection) {
+	return parseInt(bstyle.getPropertyValue(`margin-${marginDirection}`))
+}
+console.log(margin('top'), margin('bottom'));
+console.log(margin('left'), margin('right'));
 var k = 100;
-var w = window.innerWidth;
-var h = window.innerHeight;
+//var w = document.body.clientWidth; //window.innerWidth;
+//var h = document.body.clientHeight; //window.innerHeight;
+var w = document.documentElement.scrollWidth - margin('left') - margin('right') - 4; 
+var h = document.documentElement.scrollHeight - margin('top') - margin('bottom') - 4; 
+//w=934 h=702
+//cell size: 234 234
 var r = 50;
 var c = 250;
 var max_iteration = 2;
 var dataset = [];
+
+console.log(w, h)
 
 var cols = 3;
 var rows = cols; //currently supports only square cells
@@ -33,10 +46,10 @@ rowHeight = Math.floor(squareSize / rows)
 console.log(colWidth, rowHeight)
 
 function getColCenter(col) {
-	return Math.floor((col - 1) * colWidth + colWidth / 2) + squareX
+	return Math.floor((col - 1) * colWidth + colWidth / 2) + squareX - 1
 }
 function getRowCenter(row) {
-	return Math.floor((row - 1) * rowHeight + rowHeight / 2) + squareY
+	return Math.floor((row - 1) * rowHeight + rowHeight / 2) + squareY - 1
 }
 
 function getCellCenter(row, col) {
@@ -126,9 +139,13 @@ function complete() {
 		.attr("fill", "#c01d59")
 		.ease("cubic-out")
 		.duration(3000)
+		.each("end", fixposition)
 	;
 };	
-
+function fixposition() {
+	d3.select(this)
+		.style("opacity", 1)
+}
 </script>
 </body>
 </HTML>

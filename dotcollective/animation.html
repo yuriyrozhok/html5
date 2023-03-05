@@ -9,14 +9,47 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.min.js"></script>
 <script>
-
+console.log(window.innerWidth, window.innerHeight)
 var k = 100;
-var w = 1000;
-var h = 1000;
+var w = window.innerWidth;
+var h = window.innerHeight;
 var r = 50;
 var c = 250;
-var max_iteration = 10;
+var max_iteration = 2;
 var dataset = [];
+
+var cols = 3;
+var rows = cols; //currently supports only square cells
+
+squareSize = Math.min(h, w)
+sqCenterX = Math.floor(w / 2)
+sqCenterY = Math.floor(h / 2)
+squareX = Math.floor(sqCenterX - squareSize / 2)
+squareY = Math.floor(sqCenterY - squareSize / 2)
+
+colWidth = Math.floor(squareSize / cols)
+rowHeight = Math.floor(squareSize / rows)
+
+console.log(colWidth, rowHeight)
+
+function getColCenter(col) {
+	return Math.floor((col - 1) * colWidth + colWidth / 2) + squareX
+}
+function getRowCenter(row) {
+	return Math.floor((row - 1) * rowHeight + rowHeight / 2) + squareY
+}
+
+function getCellCenter(row, col) {
+	return {
+		'x': getColCenter(col),
+		'y': getRowCenter(row),
+	}
+}
+for (ir = 1; ir <= rows; ir++) { 
+	for (ic = 1; ic <= rows; ic++) { 
+		console.log(getCellCenter(ir, ic));
+	}
+};	
 
 for (i = 0; i < k; i++) { 
 	//console.log("started iteration " + i);
@@ -27,19 +60,20 @@ var svg = d3.select("body")
 	.append("svg")
 	.attr("width", w)
 	.attr("height", h);
+
 var getRand = function(i) {
 	return Math.floor(Math.random() * i) + 1;
 };
+
 var circles = svg.selectAll("circle")
 	.data(dataset)
 	.enter()
 	.append("circle")
-	.attr("cx", w/2)
-	.attr("cy", h/2)
+	.attr("cx", sqCenterX)
+	.attr("cy", sqCenterY)
 	.attr("r", r)
-	.attr("fill", "steelblue")
-	.attr("stroke", "white")
-	.attr("stroke-width", 1)
+	.attr("fill", "#0671b7")
+	.attr("stroke", "none") //	.attr("stroke-width", 1)
 	.style("opacity", 0.5)
 	.transition()
 	.delay(2000)
@@ -71,8 +105,8 @@ function slide() {
 				return "rgb(" + getRand(c) + "," + getRand(c) + "," + getRand(c) + ")";
 			}
 		)
-		.ease("linear")
-		.duration(3000);
+		.ease("ease-in-out")
+		.duration(getRand(6000) + 4000);
 	if (++circle[0][0].__data__.iteration < max_iteration) {
 		//console.log(circle[0][0].__data__);
 		circle.each("end", repeat);
@@ -86,10 +120,10 @@ function slide() {
 function complete() {
 	d3.select(this)
 		.transition()
-		.attr("cx", w/2)
-		.attr("cy", h/2)
+		.attr("cx", getColCenter(getRand(cols)))
+		.attr("cy", getRowCenter(getRand(rows)))
 		.attr("r", r)
-		.attr("fill", "steelblue")
+		.attr("fill", "#c01d59")
 		.ease("cubic-out")
 		.duration(3000)
 	;

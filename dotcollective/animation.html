@@ -15,26 +15,25 @@ bstyle = window.getComputedStyle(document.body);
 function margin(marginDirection) {
 	return parseInt(bstyle.getPropertyValue(`margin-${marginDirection}`))
 }
-console.log(margin('top'), margin('bottom'));
-console.log(margin('left'), margin('right'));
-var k = 100;
+
+var cols = 3;
+var rows = cols; //currently supports only square cells
+var cells = rows * cols
+
+var k = rows * cols * 10;
 //var w = document.body.clientWidth; //window.innerWidth;
 //var h = document.body.clientHeight; //window.innerHeight;
 var w = document.documentElement.scrollWidth - margin('left') - margin('right') - 4; 
 var h = document.documentElement.scrollHeight - margin('top') - margin('bottom') - 4; 
-//w=934 h=702
-//cell size: 234 234
-var r = 50;
 var c = 250;
 var max_iteration = 2;
 var dataset = [];
 
 console.log(w, h)
 
-var cols = 3;
-var rows = cols; //currently supports only square cells
-
 squareSize = Math.min(h, w)
+var r = Math.floor(squareSize / cols / 4);
+
 sqCenterX = Math.floor(w / 2)
 sqCenterY = Math.floor(h / 2)
 squareX = Math.floor(sqCenterX - squareSize / 2)
@@ -74,6 +73,14 @@ var svg = d3.select("body")
 	.attr("width", w)
 	.attr("height", h);
 
+//console.log(svg[0][0].style);
+//svg[0][0].onmousemove = (event) => {
+/*
+svg[0][0].onmousedown = (event) => {	
+	//console.log(event.clientX, event.clientY)
+	svg.selectAll("circle").interrupt();
+}
+*/
 var getRand = function(i) {
 	return Math.floor(Math.random() * i) + 1;
 };
@@ -87,7 +94,7 @@ var circles = svg.selectAll("circle")
 	.attr("r", r)
 	.attr("fill", "#0671b7")
 	.attr("stroke", "none") //	.attr("stroke-width", 1)
-	.style("opacity", 0.5)
+	.style("opacity", 0.5) //	.style("shape-rendering", "geometricPrecision")
 	.transition()
 	.delay(2000)
 	.each(slide)
@@ -131,10 +138,14 @@ function slide() {
   })();
 };
 function complete() {
+	//console.log(this.__data__.idx, Math.floor(this.__data__.idx % cells / rows), this.__data__.idx % cells % rows);
+	this.__data__.row = Math.floor(this.__data__.idx % cells / rows) + 1;
+	this.__data__.col = this.__data__.idx % cells % rows + 1;
+	//console.log(this.__data__);
 	d3.select(this)
 		.transition()
-		.attr("cx", getColCenter(getRand(cols)))
-		.attr("cy", getRowCenter(getRand(rows)))
+		.attr("cx", getColCenter(this.__data__.col))
+		.attr("cy", getRowCenter(this.__data__.row))
 		.attr("r", r)
 		.attr("fill", "#c01d59")
 		.ease("cubic-out")
@@ -145,7 +156,34 @@ function complete() {
 function fixposition() {
 	d3.select(this)
 		.style("opacity", 1)
+		.each(moveDots)
 }
+function nextPosition(circle) {
+	if (Math.random() >= 0.5) {
+		nextCol = circle.__data__.col;
+		nextRow = circle.__data__.row + 1;
+		nextRow = nextRow > cols ? 1 : nextRow;
+	} else {
+		nextRow = circle.__data__.row;
+		nextCol = circle.__data__.col + 1;
+		nextCol = nextCol > cols ? 1 : nextCol;
+	}
+	return {
+		'row': nextRow,
+		'col': nextCol
+	};
+
+}
+function moveDots() {
+	np = nextPosition(this);
+	//console.log(np.row, np.col);
+	d3.select(this)
+		.transition()
+		.attr("cx", getColCenter(np.col))
+		.attr("cy", getRowCenter(np.row))
+		.duration(3000)
+}
+
 </script>
 </body>
 </HTML>
